@@ -1,257 +1,909 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow - 社内意見改善ワークフロー</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans JP', sans-serif; }
-        #root:empty {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #64748b;
-        }
-        #root:empty::after {
-            content: "Loading Application...";
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>改善BOX - 社内意見収集・改善ワークフロー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg0:#060c1a;--bg1:#0b1426;--card:#101c34;--card2:#152040;
+      --border:#1c2e50;--border2:#253a60;
+      --accent:#f97316;--accent-h:#ea6a0a;--accent2:#22d3ee;
+      --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+      --green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--purple:#a78bfa;
+      --radius:10px;--radius-sm:6px;--radius-lg:14px;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg0);color:var(--text);font-family:'DM Sans','Noto Sans JP',sans-serif;min-height:100vh;line-height:1.5}
+    body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.025) 1px,transparent 0);background-size:36px 36px;pointer-events:none;z-index:0}
+    #root{position:relative;z-index:1}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+    .fade-up{animation:fadeUp .35s ease both}
+    .fade-in{animation:fadeIn .25s ease both}
+    .spin{animation:spin 1s linear infinite}
+    .pulse{animation:pulse 1.4s ease infinite}
+
+    /* Base elements */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .18s;border:1px solid transparent;line-height:1;text-decoration:none;white-space:nowrap}
+    .btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+    .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn-primary:hover:not(:disabled){background:var(--accent-h);transform:translateY(-1px)}
+    .btn-primary:active{transform:translateY(0)}
+    .btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}
+    .btn-ghost:hover:not(:disabled){background:var(--card);color:var(--text);border-color:var(--border2)}
+    .btn-cyan{background:rgba(34,211,238,.12);color:var(--accent2);border-color:rgba(34,211,238,.3)}
+    .btn-cyan:hover:not(:disabled){background:rgba(34,211,238,.22)}
+    .btn-danger{background:rgba(248,113,113,.12);color:var(--red);border-color:rgba(248,113,113,.3)}
+    .btn-danger:hover:not(:disabled){background:rgba(248,113,113,.22)}
+    .btn-green{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.3)}
+    .btn-green:hover:not(:disabled){background:rgba(52,211,153,.22)}
+    .btn-sm{padding:5px 10px;font-size:12px}
+    .btn-lg{padding:11px 22px;font-size:15px}
+
+    .input{width:100%;padding:9px 13px;background:var(--bg0);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;transition:border-color .2s;outline:none}
+    .input:focus{border-color:var(--accent)}
+    .input::placeholder{color:var(--text3)}
+    textarea.input{resize:vertical;line-height:1.65}
+    select.input{cursor:pointer}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+    .card-sm{padding:14px 16px}
+
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:.02em}
+    .dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
+
+    .label{font-size:12px;color:var(--text2);margin-bottom:5px;display:block;font-weight:500}
+    .divider{height:1px;background:var(--border);margin:16px 0}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+    .vote-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:13px;cursor:pointer;transition:all .18s;font-family:inherit;font-weight:500}
+    .vote-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(249,115,22,.08)}
+    .vote-btn.voted{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.45);color:var(--accent)}
+
+    .tag-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+    .tag-scroll::-webkit-scrollbar{display:none}
+
+    .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;animation:fadeUp .3s ease;backdrop-filter:blur(12px)}
+    .toast-ok{background:rgba(52,211,153,.18);border:1px solid rgba(52,211,153,.4);color:#34d399}
+    .toast-warn{background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.4);color:#fbbf24}
+    .toast-err{background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.4);color:#f87171}
+    .toast-info{background:rgba(34,211,238,.18);border:1px solid rgba(34,211,238,.4);color:#22d3ee}
+
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:200;animation:fadeIn .2s ease}
+    .score-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-top:5px}
+    .score-fill{height:100%;border-radius:2px;transition:width .7s ease}
+
+    .nav-link{padding:6px 12px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--text2);font-family:inherit;transition:all .18s;font-weight:500}
+    .nav-link:hover{color:var(--text);background:rgba(255,255,255,.05)}
+    .nav-link.active{color:var(--accent);background:rgba(249,115,22,.1);border-color:rgba(249,115,22,.25)}
+
+    .post-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;cursor:pointer;transition:all .2s}
+    .post-card:hover{border-color:rgba(249,115,22,.45);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+    .disc-item{display:flex;gap:10px;animation:fadeUp .25s ease}
+    .disc-bubble{flex:1;background:rgba(255,255,255,.04);border-radius:0 var(--radius-sm) var(--radius-sm) var(--radius-sm);padding:9px 13px;font-size:13.5px;color:#cbd5e1;line-height:1.65;border:1px solid var(--border)}
+    .disc-bubble.manager{border-color:rgba(129,140,248,.25);background:rgba(129,140,248,.06)}
+
+    .toggle-track{width:40px;height:22px;border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .toggle-thumb{position:absolute;width:16px;height:16px;background:white;border-radius:50%;top:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+
+    @media(max-width:640px){
+      .grid-3{grid-template-columns:1fr}
+      .hide-mobile{display:none}
+    }
+  </style>
 </head>
-<body class="bg-slate-50">
-    <div id="root"></div>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        
-        // アイコンコンポーネントの修正版
-        const Icon = ({ name, size = 24, className = "" }) => {
-            const iconRef = useRef(null);
+// ─── Constants ──────────────────────────────────────────────────────────────
+const CATEGORIES = ['業務改善','環境・設備','制度・福利厚生','コミュニケーション','技術・ツール','その他'];
+const CRED = { id:'tomitake', pw:'tomitake_flush1998', name:'富武 花子', role:'manager' };
+const LS = { POSTS:'kb_posts_v3', DISC:'kb_disc_v3', VOTES:'kb_votes_v3', KEY:'kb_apikey' };
 
-            useEffect(() => {
-                // lucide.createIcons を使用して描画
-                if (window.lucide && iconRef.current) {
-                    // data-lucide 属性をセット
-                    iconRef.current.setAttribute('data-lucide', name.toLowerCase().replace(/([a-z])([A-Z])/g, '$1-$2'));
-                    window.lucide.createIcons({
-                        attrs: {
-                            width: size,
-                            height: size,
-                            class: className,
-                            'stroke-width': 2
-                        },
-                        nameAttr: 'data-lucide',
-                        icons: window.lucide.icons
-                    });
-                }
-            }, [name, size, className]);
+const S = {
+  pending:    { l:'検討中',     c:'#f59e0b', bg:'rgba(245,158,11,.12)' },
+  assigned:   { l:'アサイン済', c:'#818cf8', bg:'rgba(129,140,248,.12)' },
+  inprogress: { l:'対応中',     c:'#38bdf8', bg:'rgba(56,189,248,.12)' },
+  hold:       { l:'保留',       c:'#94a3b8', bg:'rgba(148,163,184,.12)' },
+  rejected:   { l:'却下',       c:'#f87171', bg:'rgba(248,113,113,.12)' },
+  completed:  { l:'完了',       c:'#34d399', bg:'rgba(52,211,153,.12)' },
+};
+const I = {
+  improvement: { l:'改善案',   c:'#34d399' },
+  complaint:   { l:'不満',     c:'#f87171' },
+  issue:       { l:'問題提起', c:'#fbbf24' },
+  idea:        { l:'アイデア', c:'#60a5fa' },
+};
 
-            return <span ref={iconRef} className="inline-flex items-center justify-center"></span>;
-        };
+// ─── Sample Data ────────────────────────────────────────────────────────────
+const INIT_POSTS = [
+  { id:'p1', content:'リモートワーク時にコミュニケーションツールが複数に分散していて情報共有がとてもしにくい状況です。Slack一本化を強く希望します。チーム間の連携も改善されると思います。', category:'コミュニケーション', anonymous:false, authorName:'山田 太郎', status:'assigned', votes:12, createdAt:new Date(Date.now()-7*864e5).toISOString(), aiSummary:'コミュニケーションツールのSlack一本化提案', aiIntent:'improvement', aiScore:78, aiUrgency:4, aiImpact:4, aiFeasibility:3, assignedTo:'tomitake', rejectionReason:null, parentPostId:null },
+  { id:'p2', content:'オフィスの空調が極端です。夏は寒すぎ、冬は暑すぎる。個人個人が調整できる仕組みか、せめてゾーニングできる設備を導入してほしい。', category:'環境・設備', anonymous:true, authorName:null, status:'pending', votes:8, createdAt:new Date(Date.now()-3*864e5).toISOString(), aiSummary:'オフィス空調の個別温度調整機能要望', aiIntent:'complaint', aiScore:65, aiUrgency:3, aiImpact:3, aiFeasibility:2, assignedTo:null, rejectionReason:null, parentPostId:null },
+  { id:'p3', content:'有給休暇の取得率が低い現状を改善したいです。取得しやすい雰囲気づくりと、年5日以上の強制取得など奨励制度の導入をお願いします。社員のウェルネス向上にも繋がります。', category:'制度・福利厚生', anonymous:false, authorName:'鈴木 花子', status:'inprogress', votes:20, createdAt:new Date(Date.now()-14*864e5).toISOString(), aiSummary:'有給休暇取得促進のための制度整備要望', aiIntent:'issue', aiScore:88, aiUrgency:4, aiImpact:5, aiFeasibility:4, assignedTo:'tomitake', rejectionReason:null, parentPostId:null },
+  { id:'p4', content:'社内PCが老朽化していて処理が非常に遅く、業務効率が大幅に落ちています。少なくとも5年以上経過したPCの早急な入れ替えをお願いしたい。', category:'技術・ツール', anonymous:false, authorName:'田中 次郎', status:'rejected', votes:5, createdAt:new Date(Date.now()-30*864e5).toISOString(), aiSummary:'老朽化PC更新による業務効率改善要望', aiIntent:'issue', aiScore:72, aiUrgency:4, aiImpact:4, aiFeasibility:2, assignedTo:'tomitake', rejectionReason:'今年度の予算が確保されていないため、来年度の予算申請に含める方向で検討します。ご不便をおかけして大変申し訳ありません。', parentPostId:null },
+  { id:'p5', content:'週1回の全社朝会が長すぎて業務時間を圧迫しています。15分以内に短縮するか、情報発信は録画＋テキスト共有にして必要な部署のみ参加の形式にしてほしい。', category:'業務改善', anonymous:true, authorName:null, status:'completed', votes:15, createdAt:new Date(Date.now()-45*864e5).toISOString(), aiSummary:'全社朝会の短縮・参加者見直し提案', aiIntent:'improvement', aiScore:82, aiUrgency:3, aiImpact:4, aiFeasibility:5, assignedTo:'tomitake', rejectionReason:null, parentPostId:null },
+];
+const INIT_DISC = {
+  p1:[
+    { id:'d1', postId:'p1', authorName:'富武 花子', isManager:true, message:'ご提案ありがとうございます。現状の各ツール使用状況を調査の上、移行コストと効果を比較検討します。', createdAt:new Date(Date.now()-864e5).toISOString() },
+    { id:'d2', postId:'p1', authorName:'山田 太郎', isManager:false, message:'よろしくお願いします！現場の声も拾っていただけると助かります。', createdAt:new Date(Date.now()-432e5).toISOString() },
+  ],
+  p3:[
+    { id:'d3', postId:'p3', authorName:'富武 花子', isManager:true, message:'有給取得促進キャンペーンを次の四半期から開始することが決定しました。詳細は別途全社連絡します。', createdAt:new Date(Date.now()-864e5*2).toISOString() },
+    { id:'d4', postId:'p3', authorName:'鈴木 花子', isManager:false, message:'ありがとうございます！社員一同、前向きな対応を心より感謝します。', createdAt:new Date(Date.now()-864e5).toISOString() },
+  ],
+};
 
-        const initialPosts = [
-            {
-                id: 1, authorId: 'user1', authorName: '田中', isAnonymous: false, 
-                content: 'リモートワークの補助金制度を拡充してほしいです。', 
-                category: '人事', status: '検討中', aiSummary: 'リモートワーク補助金の拡充要望', 
-                aiIntent: '改善案', aiScore: 78, createdAt: '2026-04-01 09:00', updatedAt: '2026-04-01 09:00'
-            },
-            {
-                id: 2, authorId: 'user2', authorName: '匿名ユーザー', isAnonymous: true, 
-                content: '会議室の予約システムが使いづらいです。', 
-                category: '環境', status: '完了', aiSummary: '会議室予約システムの改善要望', 
-                aiIntent: '問題提起', aiScore: 65, createdAt: '2026-04-03 11:20', updatedAt: '2026-04-10 15:45'
-            }
-        ];
+// ─── Utils ──────────────────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,10);
+const timeAgo = iso => {
+  const s = (Date.now()-new Date(iso))/1000;
+  if(s<60) return 'たった今';
+  if(s<3600) return `${Math.floor(s/60)}分前`;
+  if(s<86400) return `${Math.floor(s/3600)}時間前`;
+  return `${Math.floor(s/86400)}日前`;
+};
+const fmtDate = iso => new Date(iso).toLocaleDateString('ja-JP',{year:'numeric',month:'short',day:'numeric'});
+const lsGet = k => { try{ const v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch{ return null; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} };
 
-        const USERS = {
-            employee: { id: 'user_emp', name: '一般社員', role: 'employee' },
-            manager: { id: 'mgr1', name: '富竹', role: 'manager' }
-        };
+async function aiAnalyze(content, apiKey) {
+  if(!apiKey) throw new Error('APIキー未設定');
+  const prompt = `以下の社員意見を分析し、JSONのみ返してください（マークダウン・説明文不要）:\n"${content}"\n\n{"summary":"30字以内の要約","intent":"improvement|complaint|issue|ideaのいずれか1つ","urgency":1から5の整数,"impact":1から5の整数,"feasibility":1から5の整数,"score":0から100の整数}`;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:400, messages:[{role:'user',content:prompt}] })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const txt = data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+  return JSON.parse(txt);
+}
 
-        function App() {
-            const [isLoggedIn, setIsLoggedIn] = useState(false);
-            const [currentUser, setCurrentUser] = useState(null);
-            const [activeTab, setActiveTab] = useState('all'); 
-            const [posts, setPosts] = useState(initialPosts);
-            const [selectedPost, setSelectedPost] = useState(null);
-            const [categoryFilter, setCategoryFilter] = useState('All');
+// ─── Atoms ──────────────────────────────────────────────────────────────────
+const StatusBadge = ({status}) => {
+  const cfg = S[status]; if(!cfg) return null;
+  return <span className="badge" style={{background:cfg.bg,color:cfg.c,border:`1px solid ${cfg.c}40`}}><span className="dot" style={{background:cfg.c}}/>{cfg.l}</span>;
+};
+const IntentBadge = ({intent}) => {
+  if(!intent||!I[intent]) return null;
+  const cfg = I[intent];
+  return <span className="badge" style={{background:`${cfg.c}18`,color:cfg.c,border:`1px solid ${cfg.c}30`}}>{cfg.l}</span>;
+};
+const CatBadge = ({cat}) => (
+  <span className="badge" style={{background:'rgba(148,163,184,.1)',color:'#94a3b8',border:'1px solid rgba(148,163,184,.2)'}}>{cat}</span>
+);
+const ScoreBar = ({label,val,max=5,color}) => (
+  <div>
+    <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'#64748b',marginBottom:3}}>
+      <span>{label}</span><span style={{color,fontWeight:600}}>{val}/{max}</span>
+    </div>
+    <div className="score-bar"><div className="score-fill" style={{width:`${(val/max)*100}%`,background:color}}/></div>
+  </div>
+);
+const Avatar = ({name,size=32}) => {
+  const colors = ['#f97316','#22d3ee','#a78bfa','#34d399','#f87171','#fbbf24','#60a5fa'];
+  const c = name ? colors[name.charCodeAt(0)%colors.length] : '#64748b';
+  return (
+    <div style={{width:size,height:size,borderRadius:'50%',background:`${c}1e`,border:`1.5px solid ${c}50`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*.36,color:c,fontWeight:700,flexShrink:0,userSelect:'none'}}>
+      {name?name.slice(0,2):'匿'}
+    </div>
+  );
+};
+const Toggle = ({on,onChange}) => (
+  <div className="toggle-track" style={{background:on?'var(--accent)':'var(--border2)'}} onClick={()=>onChange(!on)}>
+    <div className="toggle-thumb" style={{left:on?21:3}}/>
+  </div>
+);
+const Spinner = ({size=16}) => (
+  <div className="spin" style={{width:size,height:size,border:`2px solid rgba(255,255,255,.2)`,borderTopColor:'white',borderRadius:'50%'}}/>
+);
+const Toast = ({msg,type}) => <div className={`toast toast-${type}`}>{msg}</div>;
 
-            const handleLoginEmployee = () => {
-                setCurrentUser(USERS.employee);
-                setIsLoggedIn(true);
-            };
+// ─── Header ─────────────────────────────────────────────────────────────────
+const Header = ({user,view,onNav,onLogout,onSettings}) => (
+  <header style={{background:'rgba(6,12,26,.92)',backdropFilter:'blur(12px)',borderBottom:'1px solid var(--border)',position:'sticky',top:0,zIndex:100,padding:'0 20px'}}>
+    <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',gap:12,height:54}}>
+      <div style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer',marginRight:8}} onClick={()=>onNav('feed')}>
+        <div style={{width:28,height:28,background:'linear-gradient(135deg,#f97316,#fb923c)',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>💡</div>
+        <span style={{fontSize:15,fontWeight:700,letterSpacing:'-.3px'}}>改善BOX</span>
+      </div>
+      <nav style={{display:'flex',gap:2,flex:1}}>
+        {[{k:'feed',l:'フィード'},{k:'compose',l:'＋ 投稿'},...(user?.role==='manager'?[{k:'dashboard',l:'管理'}]:[])].map(n=>(
+          <button key={n.k} className={`nav-link ${view===n.k?'active':''}`} onClick={()=>onNav(n.k)}>{n.l}</button>
+        ))}
+      </nav>
+      <button className="btn btn-ghost btn-sm" style={{fontSize:16,padding:'5px 8px',lineHeight:1}} onClick={onSettings} title="設定">⚙</button>
+      {user ? (
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <Avatar name={user.name} size={26}/>
+          <span className="hide-mobile" style={{fontSize:12,color:'#94a3b8'}}>{user.name}</span>
+          <button className="btn btn-ghost btn-sm" onClick={onLogout}>ログアウト</button>
+        </div>
+      ) : (
+        <button className="btn btn-ghost btn-sm" onClick={()=>onNav('login')}>管理職ログイン</button>
+      )}
+    </div>
+  </header>
+);
 
-            const handleLoginManager = () => {
-                const pass = prompt("管理職パスワードを入力してください (tomitake_flush1998)");
-                if (pass === "tomitake_flush1998") {
-                    setCurrentUser(USERS.manager);
-                    setIsLoggedIn(true);
-                } else {
-                    alert("認証失敗");
-                }
-            };
-
-            const handleStatusChange = (postId, newStatus) => {
-                const now = new Date().toLocaleString('ja-JP');
-                const updated = posts.map(p => p.id === postId ? { ...p, status: newStatus, updatedAt: now } : p);
-                setPosts(updated);
-                setSelectedPost(updated.find(p => p.id === postId));
-            };
-
-            const filteredPosts = posts
-                .filter(p => categoryFilter === 'All' || p.category === categoryFilter)
-                .filter(p => activeTab === 'completed' ? p.status === '完了' : p.status !== '完了');
-
-            if (!isLoggedIn) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-100">
-                        <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border border-slate-200">
-                            <div className="flex justify-center mb-4 text-blue-600">
-                                <Icon name="Sparkles" size={48} />
-                            </div>
-                            <h1 className="text-4xl font-black mb-2 text-slate-800 tracking-tighter">IdeaFlow</h1>
-                            <p className="text-slate-500 mb-8 text-sm">社内の意見をAIで可視化・改善</p>
-                            <div className="space-y-4">
-                                <button onClick={handleLoginEmployee} className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center justify-center gap-3 text-slate-700 group">
-                                    <Icon name="User" size={20} className="text-slate-400 group-hover:text-blue-500" /> 一般社員としてログイン
-                                </button>
-                                <button onClick={handleLoginManager} className="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-3 group">
-                                    <Icon name="ShieldAlert" size={20} className="text-blue-200 group-hover:text-white" /> 管理職としてログイン
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="min-h-screen flex flex-col">
-                    <header className="bg-white border-b px-6 h-16 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-                        <div className="flex items-center gap-2 font-black text-xl text-slate-900 cursor-pointer" onClick={() => {setSelectedPost(null); setActiveTab('all');}}>
-                            <Icon name="Sparkles" className="text-blue-600" /> IdeaFlow
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 bg-slate-100 px-4 py-1.5 rounded-full">
-                                <Icon name="User" size={14} className="text-slate-400" />
-                                <span className="text-xs font-bold text-slate-600">{currentUser.name}</span>
-                            </div>
-                            <button onClick={() => setIsLoggedIn(false)} className="text-xs text-slate-400 hover:text-red-500 transition-colors font-bold">ログアウト</button>
-                        </div>
-                    </header>
-
-                    <main className="max-w-6xl mx-auto w-full py-8 px-6 flex flex-col md:flex-row gap-8 flex-1 overflow-hidden">
-                        <aside className="w-full md:w-48 flex-shrink-0 flex flex-row md:flex-col gap-2">
-                            <button onClick={() => {setActiveTab('all'); setSelectedPost(null);}} className={`flex-1 md:flex-none p-3 rounded-xl text-sm font-bold text-left flex items-center gap-2 transition-all ${activeTab === 'all' && !selectedPost ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'bg-white md:bg-transparent border border-slate-200 md:border-none hover:bg-slate-200'}`}>
-                                <Icon name="FileText" size={16}/> すべての意見
-                            </button>
-                            <button onClick={() => {setActiveTab('completed'); setSelectedPost(null);}} className={`flex-1 md:flex-none p-3 rounded-xl text-sm font-bold text-left flex items-center gap-2 transition-all ${activeTab === 'completed' && !selectedPost ? 'bg-emerald-600 text-white shadow-md shadow-emerald-100' : 'bg-white md:bg-transparent border border-slate-200 md:border-none hover:bg-slate-200'}`}>
-                                <Icon name="CheckSquare" size={16}/> 反映済み
-                            </button>
-                        </aside>
-
-                        <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
-                            {selectedPost ? (
-                                <div className="p-8 animate-in fade-in duration-300 overflow-y-auto">
-                                    <button onClick={() => setSelectedPost(null)} className="text-blue-600 font-bold mb-6 flex items-center gap-1 hover:underline">
-                                        <Icon name="ChevronLeft" size={16}/> 一覧に戻る
-                                    </button>
-                                    <div className="mb-6">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${selectedPost.status === '完了' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>
-                                                {selectedPost.status}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                                                <Icon name="Clock" size={12} /> 更新: {selectedPost.updatedAt}
-                                            </span>
-                                        </div>
-                                        <h2 className="text-3xl font-black text-slate-800 leading-tight">{selectedPost.aiSummary}</h2>
-                                    </div>
-                                    <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 mb-8 text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">
-                                        {selectedPost.content}
-                                    </div>
-                                    
-                                    {currentUser.role === 'manager' && (
-                                        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-inner">
-                                            <h3 className="text-xs font-black text-blue-600 mb-4 uppercase tracking-widest flex items-center gap-2">
-                                                <Icon name="ShieldAlert" size={14}/> ステータス管理
-                                            </h3>
-                                            <div className="flex flex-wrap gap-2">
-                                                {['検討中', '対応中', '完了'].map(st => (
-                                                    <button 
-                                                        key={st} 
-                                                        onClick={() => handleStatusChange(selectedPost.id, st)} 
-                                                        className={`px-6 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${selectedPost.status === st ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-100 hover:border-blue-300'}`}
-                                                    >
-                                                        {st}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col h-full">
-                                    <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                                        <span className="font-black text-slate-400 uppercase text-[10px] tracking-widest flex items-center gap-2 px-2">
-                                            <Icon name="Filter" size={12}/> {activeTab === 'completed' ? 'Reflected Archive' : 'Incoming Ideas'}
-                                        </span>
-                                        <select className="text-xs font-bold border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white" onChange={e => setCategoryFilter(e.target.value)} value={categoryFilter}>
-                                            <option value="All">すべてのカテゴリ</option>
-                                            <option value="人事">人事</option>
-                                            <option value="環境">環境</option>
-                                            <option value="業務効率化">業務効率化</option>
-                                        </select>
-                                    </div>
-                                    <div className="divide-y divide-slate-100 overflow-y-auto">
-                                        {filteredPosts.map(post => (
-                                            <div key={post.id} onClick={() => setSelectedPost(post)} className="p-6 hover:bg-slate-50 cursor-pointer transition-all flex justify-between items-center group">
-                                                <div className="flex-1 pr-4">
-                                                    <div className="flex items-center gap-3 mb-1.5">
-                                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded border ${post.status === '完了' ? 'text-emerald-600 border-emerald-100 bg-emerald-50' : 'text-yellow-600 border-yellow-100 bg-yellow-50'}`}>
-                                                            {post.status}
-                                                        </span>
-                                                        <span className="text-[9px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded">#{post.category}</span>
-                                                    </div>
-                                                    <h3 className="font-black text-lg text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">{post.aiSummary}</h3>
-                                                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                                                        <Icon name="Clock" size={10} /> {post.updatedAt}
-                                                    </p>
-                                                </div>
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all">
-                                                    <Icon name="ChevronRight" size={20} />
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {filteredPosts.length === 0 && (
-                                            <div className="p-24 text-center">
-                                                <div className="flex justify-center mb-4 text-slate-200">
-                                                    <Icon name="Inbox" size={64} />
-                                                </div>
-                                                <p className="text-slate-300 font-black text-xl uppercase tracking-widest">No Data Found</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </main>
-                </div>
-            );
+// ─── PostCard ────────────────────────────────────────────────────────────────
+const PostCard = ({post,onDetail,onVote,voted}) => (
+  <div className="post-card fade-up" onClick={()=>onDetail(post.id)}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+      <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+        <CatBadge cat={post.category}/>
+        {post.aiIntent && <IntentBadge intent={post.aiIntent}/>}
+        {post.parentPostId && <span className="badge" style={{background:'rgba(167,139,250,.15)',color:'#a78bfa',border:'1px solid rgba(167,139,250,.3)'}}>再提案</span>}
+      </div>
+      <StatusBadge status={post.status}/>
+    </div>
+    {post.aiSummary && (
+      <p style={{fontSize:12,color:'var(--text2)',marginBottom:5,fontWeight:500}}>{post.aiSummary}</p>
+    )}
+    <p style={{fontSize:13.5,color:'#cbd5e1',lineHeight:1.65,marginBottom:12,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{post.content}</p>
+    {post.aiScore != null && (
+      <div style={{marginBottom:12}}>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'#475569',marginBottom:3}}>
+          <span>優先度スコア</span>
+          <span style={{color:'#f97316',fontWeight:700}}>{post.aiScore}pt</span>
+        </div>
+        <div className="score-bar">
+          <div className="score-fill" style={{width:`${post.aiScore}%`,background:'linear-gradient(90deg,#f97316,#fb923c)'}}/>
+        </div>
+      </div>
+    )}
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div style={{display:'flex',alignItems:'center',gap:7}}>
+        {post.anonymous
+          ? <span style={{fontSize:11,color:'#475569',display:'flex',alignItems:'center',gap:4}}><Avatar name={null} size={18}/> 匿名</span>
+          : <><Avatar name={post.authorName} size={20}/><span style={{fontSize:12,color:'#64748b'}}>{post.authorName}</span></>
         }
+        <span style={{fontSize:11,color:'#374151'}}>· {timeAgo(post.createdAt)}</span>
+      </div>
+      <button className={`vote-btn ${voted?'voted':''}`} onClick={e=>{e.stopPropagation();onVote(post.id);}}>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 1L9 8H1L5 1Z"/></svg>
+        {post.votes}
+      </button>
+    </div>
+  </div>
+);
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+// ─── FeedView ────────────────────────────────────────────────────────────────
+const FeedView = ({posts,filters,setFilters,onDetail,onVote,sessionVotes,onCompose}) => {
+  const filtered = posts
+    .filter(p=>filters.status==='all'||p.status===filters.status)
+    .filter(p=>filters.cat==='all'||p.category===filters.cat)
+    .sort((a,b)=>{
+      if(filters.sort==='score') return (b.aiScore||0)-(a.aiScore||0);
+      if(filters.sort==='votes') return b.votes-a.votes;
+      return new Date(b.createdAt)-new Date(a.createdAt);
+    });
+
+  return (
+    <div style={{maxWidth:1200,margin:'0 auto',padding:'22px 20px'}}>
+      {/* Filters */}
+      <div style={{marginBottom:18}}>
+        <div className="tag-scroll" style={{marginBottom:10}}>
+          {[{k:'all',l:'すべて'},...Object.entries(S).map(([k,v])=>({k,l:v.l}))].map(({k,l})=>(
+            <button key={k} className="btn btn-sm" style={{whiteSpace:'nowrap',flexShrink:0,background:filters.status===k?`${S[k]?.c||'var(--accent)'}18`:'transparent',color:filters.status===k?S[k]?.c||'var(--accent)':'var(--text3)',border:`1px solid ${filters.status===k?`${S[k]?.c||'var(--accent)'}40`:'var(--border)'}`}} onClick={()=>setFilters(f=>({...f,status:k}))}>
+              {l} {k!=='all'&&<span style={{opacity:.6,fontSize:10}}>({posts.filter(p=>p.status===k).length})</span>}
+            </button>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <select className="input" style={{width:'auto',fontSize:12,padding:'5px 10px'}} value={filters.cat} onChange={e=>setFilters(f=>({...f,cat:e.target.value}))}>
+            <option value="all">カテゴリ: すべて</option>
+            {CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+          </select>
+          <select className="input" style={{width:'auto',fontSize:12,padding:'5px 10px'}} value={filters.sort} onChange={e=>setFilters(f=>({...f,sort:e.target.value}))}>
+            <option value="newest">新しい順</option>
+            <option value="score">スコア順</option>
+            <option value="votes">投票数順</option>
+          </select>
+          <span style={{fontSize:12,color:'var(--text3)',marginLeft:'auto'}}>{filtered.length}件</span>
+        </div>
+      </div>
+      {/* Grid */}
+      {filtered.length===0 ? (
+        <div style={{textAlign:'center',padding:'64px 0',color:'var(--text3)'}}>
+          <div style={{fontSize:36,marginBottom:12}}>📭</div>
+          <p style={{fontSize:14}}>条件に合う意見が見つかりません</p>
+        </div>
+      ) : (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:14}}>
+          {filtered.map(p=><PostCard key={p.id} post={p} onDetail={onDetail} onVote={onVote} voted={sessionVotes.has(p.id)}/>)}
+        </div>
+      )}
+      {/* FAB */}
+      <button className="btn btn-primary" style={{position:'fixed',bottom:28,right:28,borderRadius:40,padding:'12px 20px',fontSize:14,boxShadow:'0 4px 20px rgba(249,115,22,.4)',gap:7}} onClick={onCompose}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 2v10M2 7h10"/></svg>
+        意見を投稿
+      </button>
+    </div>
+  );
+};
+
+// ─── DetailView ──────────────────────────────────────────────────────────────
+const DetailView = ({post,discs,user,onBack,onVote,voted,onUpdateStatus,onAddDisc,onRetry}) => {
+  const [msg,setMsg]       = useState('');
+  const [discName,setDiscName] = useState('');
+  const [showSt,setShowSt] = useState(false);
+  const [newSt,setNewSt]   = useState(post.status);
+  const [rejTxt,setRejTxt] = useState('');
+  const discEnd = useRef(null);
+  useEffect(()=>discEnd.current?.scrollIntoView({behavior:'smooth'}),[discs]);
+
+  const handleStatus = () => {
+    if(newSt==='rejected'&&!rejTxt.trim()) return;
+    onUpdateStatus(post.id,newSt,newSt==='rejected'?rejTxt:null);
+    setShowSt(false);
+  };
+  const handleDisc = () => {
+    if(!msg.trim()) return;
+    onAddDisc(post.id,msg.trim(),discName.trim());
+    setMsg('');
+  };
+
+  return (
+    <div style={{maxWidth:820,margin:'0 auto',padding:'22px 20px'}}>
+      <button className="btn btn-ghost btn-sm" style={{marginBottom:14}} onClick={onBack}>← 一覧に戻る</button>
+
+      {/* Main card */}
+      <div className="card fade-up" style={{marginBottom:14}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+            <CatBadge cat={post.category}/>
+            {post.aiIntent && <IntentBadge intent={post.aiIntent}/>}
+            {post.parentPostId && <span className="badge" style={{background:'rgba(167,139,250,.15)',color:'#a78bfa',border:'1px solid rgba(167,139,250,.3)'}}>再提案</span>}
+          </div>
+          <StatusBadge status={post.status}/>
+        </div>
+        <p style={{fontSize:15,lineHeight:1.8,color:'#e2e8f0',marginBottom:16}}>{post.content}</p>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:12,borderTop:'1px solid var(--border)'}}>
+          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+            {post.anonymous
+              ? <><Avatar name={null} size={24}/><span style={{fontSize:13,color:'#64748b'}}>匿名投稿</span></>
+              : <><Avatar name={post.authorName} size={24}/><span style={{fontSize:13,color:'#94a3b8'}}>{post.authorName}</span></>
+            }
+            <span style={{fontSize:12,color:'#475569'}}>{fmtDate(post.createdAt)}</span>
+          </div>
+          <button className={`vote-btn ${voted?'voted':''}`} style={{fontSize:14,padding:'6px 16px',gap:6}} onClick={()=>onVote(post.id)}>
+            <svg width="11" height="11" viewBox="0 0 10 10" fill="currentColor"><path d="M5 1L9 8H1L5 1Z"/></svg>
+            {post.votes} 賛同
+          </button>
+        </div>
+      </div>
+
+      {/* AI Analysis */}
+      {post.aiScore!=null && (
+        <div className="card fade-up" style={{marginBottom:14,borderColor:'rgba(34,211,238,.2)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+            <span style={{fontSize:13,fontWeight:700,color:'#22d3ee',display:'flex',alignItems:'center',gap:6}}>
+              <span>✦</span> AI 分析レポート
+            </span>
+            <div style={{display:'flex',alignItems:'baseline',gap:5}}>
+              <span style={{fontSize:28,fontWeight:800,color:'#f97316'}}>{post.aiScore}</span>
+              <span style={{fontSize:13,color:'#64748b'}}>/100pt</span>
+            </div>
+          </div>
+          {post.aiSummary && (
+            <div style={{background:'rgba(34,211,238,.06)',borderRadius:7,padding:'9px 13px',marginBottom:14,fontSize:13.5,color:'#cbd5e1',borderLeft:'3px solid rgba(34,211,238,.5)',lineHeight:1.6}}>
+              {post.aiSummary}
+            </div>
+          )}
+          <div className="grid-3" style={{gap:14}}>
+            <ScoreBar label="緊急度" val={post.aiUrgency||0} color="#f87171"/>
+            <ScoreBar label="影響度" val={post.aiImpact||0} color="#fbbf24"/>
+            <ScoreBar label="実現性" val={post.aiFeasibility||0} color="#34d399"/>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection reason */}
+      {post.status==='rejected' && post.rejectionReason && (
+        <div className="card fade-up" style={{marginBottom:14,borderColor:'rgba(248,113,113,.3)',background:'rgba(248,113,113,.04)'}}>
+          <div style={{fontSize:12,fontWeight:700,color:'#f87171',marginBottom:8,display:'flex',alignItems:'center',gap:5}}>
+            <span>✕</span> 却下理由（公開）
+          </div>
+          <p style={{fontSize:13.5,color:'#fca5a5',lineHeight:1.7}}>{post.rejectionReason}</p>
+          <div className="divider"/>
+          <button className="btn btn-cyan" onClick={()=>onRetry(post.id)}>
+            改善して再提案する →
+          </button>
+        </div>
+      )}
+
+      {/* Manager controls */}
+      {user?.role==='manager' && (
+        <div className="card fade-up" style={{marginBottom:14,borderColor:'rgba(129,140,248,.2)'}}>
+          <div style={{fontSize:12,fontWeight:700,color:'#818cf8',marginBottom:12,display:'flex',alignItems:'center',gap:5}}>
+            <span>⚙</span> 管理職操作
+          </div>
+          {!showSt ? (
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowSt(true)}>ステータスを変更する</button>
+          ) : (
+            <div>
+              <label className="label" style={{marginBottom:6}}>新しいステータス</label>
+              <select className="input" style={{marginBottom:10}} value={newSt} onChange={e=>setNewSt(e.target.value)}>
+                {Object.entries(S).map(([k,v])=><option key={k} value={k}>{v.l}</option>)}
+              </select>
+              {newSt==='rejected' && (
+                <>
+                  <label className="label">却下理由 <span style={{color:'#f87171'}}>*</span></label>
+                  <textarea className="input" rows={3} placeholder="却下理由を入力してください（全社公開されます）" value={rejTxt} onChange={e=>setRejTxt(e.target.value)} style={{marginBottom:10}}/>
+                </>
+              )}
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn btn-primary btn-sm" onClick={handleStatus} disabled={newSt==='rejected'&&!rejTxt.trim()}>更新する</button>
+                <button className="btn btn-ghost btn-sm" onClick={()=>setShowSt(false)}>キャンセル</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Discussion */}
+      <div className="card fade-up">
+        <div style={{fontSize:13,fontWeight:700,marginBottom:16}}>💬 ディスカッション ({discs.length}件)</div>
+        {discs.length===0 ? (
+          <div style={{textAlign:'center',padding:'20px 0',color:'var(--text3)',fontSize:13,marginBottom:14}}>まだコメントがありません。最初のコメントを書いてみましょう。</div>
+        ) : (
+          <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:16,maxHeight:380,overflowY:'auto',paddingRight:4}}>
+            {discs.map(d=>(
+              <div key={d.id} className="disc-item">
+                <Avatar name={d.authorName} size={32}/>
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',gap:7,alignItems:'center',marginBottom:4}}>
+                    <span style={{fontSize:12.5,fontWeight:600,color:d.isManager?'#818cf8':'var(--text)'}}>{d.authorName}</span>
+                    {d.isManager && <span className="badge" style={{fontSize:10,background:'rgba(129,140,248,.15)',color:'#818cf8',border:'1px solid rgba(129,140,248,.3)',padding:'1px 7px'}}>管理職</span>}
+                    <span style={{fontSize:11,color:'#374151'}}>{timeAgo(d.createdAt)}</span>
+                  </div>
+                  <div className={`disc-bubble ${d.isManager?'manager':''}`}>{d.message}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={discEnd}/>
+          </div>
+        )}
+        {!user && (
+          <input className="input" style={{marginBottom:8}} placeholder="表示名（空白で「社員」になります）" value={discName} onChange={e=>setDiscName(e.target.value)}/>
+        )}
+        <div style={{display:'flex',gap:8}}>
+          <input className="input" style={{flex:1}} value={msg} onChange={e=>setMsg(e.target.value)} placeholder="コメントを入力… (Enterで送信)" onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleDisc();}}}/>
+          <button className="btn btn-primary btn-sm" onClick={handleDisc} disabled={!msg.trim()}>送信</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── ComposeView ─────────────────────────────────────────────────────────────
+const ComposeView = ({onSubmit,onBack,loading}) => {
+  const [content,setContent]   = useState('');
+  const [cat,setCat]           = useState(CATEGORIES[0]);
+  const [anon,setAnon]         = useState(false);
+  const [name,setName]         = useState('');
+  const ok = content.trim().length >= 10;
+  return (
+    <div style={{maxWidth:680,margin:'0 auto',padding:'22px 20px'}}>
+      <button className="btn btn-ghost btn-sm" onClick={onBack} style={{marginBottom:14}}>← 戻る</button>
+      <div className="card fade-up">
+        <h2 style={{fontSize:18,fontWeight:700,marginBottom:4}}>意見・改善案を投稿</h2>
+        <p style={{fontSize:12.5,color:'var(--text3)',marginBottom:20}}>投稿内容はAIにより自動で要約・分類・スコアリングされ、月次ランキングに反映されます</p>
+        <div style={{marginBottom:14}}>
+          <label className="label">カテゴリ</label>
+          <select className="input" value={cat} onChange={e=>setCat(e.target.value)}>
+            {CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label className="label">内容 <span style={{color:'#f87171'}}>*</span> <span style={{fontWeight:400,color:'var(--text3)'}}>（10文字以上）</span></label>
+          <textarea className="input" rows={6} placeholder="具体的な問題点・改善案・アイデアをできるだけ詳しく記述してください" value={content} onChange={e=>setContent(e.target.value)}/>
+          <div style={{fontSize:11,color:ok?'#34d399':'var(--text3)',marginTop:4,textAlign:'right'}}>{content.length}文字{ok?' ✓':''}</div>
+        </div>
+        <div style={{marginBottom:20}}>
+          <label style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',userSelect:'none',marginBottom:10}}>
+            <Toggle on={anon} onChange={setAnon}/>
+            <span style={{fontSize:13.5,color:'var(--text2)'}}>匿名で投稿する</span>
+          </label>
+          {!anon && (
+            <input className="input" placeholder="お名前（空欄可）" value={name} onChange={e=>setName(e.target.value)}/>
+          )}
+        </div>
+        <button className="btn btn-primary btn-lg" style={{width:'100%',gap:9}} onClick={()=>onSubmit({content,cat,anon,name:name||'社員'})} disabled={!ok||loading}>
+          {loading ? <><Spinner/> AI分析中...</> : '投稿する'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── RetryView ───────────────────────────────────────────────────────────────
+const RetryView = ({originalPost,onSubmit,onBack,loading}) => {
+  const [improvement,setImprovement] = useState('');
+  const [feasibility,setFeasibility] = useState('');
+  const [effect,setEffect]           = useState('');
+  const [anon,setAnon]               = useState(false);
+  const [name,setName]               = useState('');
+  const ok = improvement.trim().length >= 10;
+  const buildContent = () => `【再提案】\n${improvement}${feasibility?'\n\n【実現性の補強】\n'+feasibility:''}${effect?'\n\n【期待効果】\n'+effect:''}`;
+  return (
+    <div style={{maxWidth:680,margin:'0 auto',padding:'22px 20px'}}>
+      <button className="btn btn-ghost btn-sm" onClick={onBack} style={{marginBottom:14}}>← 戻る</button>
+      {/* Original ref */}
+      <div className="card fade-up" style={{marginBottom:14,borderColor:'rgba(167,139,250,.25)',background:'rgba(167,139,250,.04)'}}>
+        <div style={{fontSize:11,color:'#a78bfa',marginBottom:6,fontWeight:600}}>元の提案（却下済）</div>
+        <p style={{fontSize:13,color:'#94a3b8',lineHeight:1.65}}>{originalPost.content}</p>
+        {originalPost.rejectionReason && (
+          <div style={{marginTop:10,padding:'8px 12px',background:'rgba(248,113,113,.08)',borderRadius:6,borderLeft:'3px solid rgba(248,113,113,.5)'}}>
+            <div style={{fontSize:11,color:'#f87171',marginBottom:3,fontWeight:600}}>却下理由</div>
+            <p style={{fontSize:12,color:'#fca5a5',lineHeight:1.6}}>{originalPost.rejectionReason}</p>
+          </div>
+        )}
+      </div>
+      <div className="card fade-up">
+        <h2 style={{fontSize:18,fontWeight:700,marginBottom:4}}>改善して再提案</h2>
+        <p style={{fontSize:12.5,color:'var(--text3)',marginBottom:20}}>却下理由を踏まえて内容を改善し、再度提案してください</p>
+        <div style={{marginBottom:14}}>
+          <label className="label">改善内容 <span style={{color:'#f87171'}}>*</span></label>
+          <textarea className="input" rows={5} placeholder="却下理由に対してどのように改善したかを説明してください（10文字以上）" value={improvement} onChange={e=>setImprovement(e.target.value)}/>
+          <div style={{fontSize:11,color:ok?'#34d399':'var(--text3)',marginTop:4,textAlign:'right'}}>{improvement.length}文字{ok?' ✓':''}</div>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label className="label">実現性の補強 <span style={{color:'var(--text3)',fontWeight:400}}>（任意）</span></label>
+          <textarea className="input" rows={3} placeholder="コスト試算・他社事例・具体的な実施手順など" value={feasibility} onChange={e=>setFeasibility(e.target.value)}/>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label className="label">期待効果 <span style={{color:'var(--text3)',fontWeight:400}}>（任意）</span></label>
+          <textarea className="input" rows={3} placeholder="採用された場合の具体的な効果・メリット" value={effect} onChange={e=>setEffect(e.target.value)}/>
+        </div>
+        <div style={{marginBottom:20}}>
+          <label style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',userSelect:'none',marginBottom:10}}>
+            <Toggle on={anon} onChange={setAnon}/>
+            <span style={{fontSize:13.5,color:'var(--text2)'}}>匿名で投稿する</span>
+          </label>
+          {!anon && <input className="input" placeholder="お名前（空欄可）" value={name} onChange={e=>setName(e.target.value)}/>}
+        </div>
+        <button className="btn btn-primary btn-lg" style={{width:'100%',gap:9}} onClick={()=>onSubmit({content:buildContent(),cat:originalPost.category,anon,name:name||'社員',parentPostId:originalPost.id})} disabled={!ok||loading}>
+          {loading ? <><Spinner/> AI分析中...</> : '再提案する'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── LoginView ───────────────────────────────────────────────────────────────
+const LoginView = ({onLogin,onBack}) => {
+  const [id,setId]   = useState('');
+  const [pw,setPw]   = useState('');
+  const [err,setErr] = useState('');
+  const handle = () => {
+    if(id===CRED.id && pw===CRED.pw) { onLogin(CRED); }
+    else { setErr('IDまたはパスワードが正しくありません'); }
+  };
+  return (
+    <div style={{maxWidth:400,margin:'52px auto',padding:'0 20px'}}>
+      <div className="card fade-up" style={{borderColor:'rgba(129,140,248,.2)'}}>
+        <div style={{textAlign:'center',marginBottom:22}}>
+          <div style={{fontSize:38,marginBottom:10}}>🔑</div>
+          <h2 style={{fontSize:19,fontWeight:700,marginBottom:4}}>管理職ログイン</h2>
+          <p style={{fontSize:12.5,color:'var(--text3)'}}>管理職専用ダッシュボードにアクセスします</p>
+        </div>
+        <div style={{marginBottom:13}}>
+          <label className="label">ログインID</label>
+          <input className="input" value={id} onChange={e=>setId(e.target.value)} placeholder="ログインID" autoComplete="username"/>
+        </div>
+        <div style={{marginBottom:13}}>
+          <label className="label">パスワード</label>
+          <input className="input" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="パスワード" autoComplete="current-password" onKeyDown={e=>e.key==='Enter'&&handle()}/>
+        </div>
+        {err && <div style={{fontSize:12.5,color:'#f87171',marginBottom:12,textAlign:'center'}}>{err}</div>}
+        <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',padding:'11px',marginBottom:9,fontSize:14}} onClick={handle}>
+          ログイン
+        </button>
+        <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',padding:'11px',fontSize:14}} onClick={onBack}>
+          戻る
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── DashboardView ───────────────────────────────────────────────────────────
+const DashboardView = ({posts,discs,onDetail,onAssign}) => {
+  const top5 = [...posts]
+    .filter(p=>p.aiScore!=null)
+    .sort((a,b)=>(b.aiScore+b.votes*2)-(a.aiScore+a.votes*2))
+    .slice(0,5);
+  const assigned   = posts.filter(p=>p.assignedTo==='tomitake'&&!['completed','rejected'].includes(p.status));
+  const unassigned = posts.filter(p=>!p.assignedTo&&p.status==='pending');
+  const statCts    = Object.fromEntries(Object.keys(S).map(k=>[k,posts.filter(p=>p.status===k).length]));
+  const rankMedals = ['🥇','🥈','🥉','4','5'];
+
+  return (
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'22px 20px'}}>
+      <h1 style={{fontSize:20,fontWeight:700,marginBottom:18}}>管理ダッシュボード</h1>
+
+      {/* Stats */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:10,marginBottom:22}}>
+        {Object.entries(statCts).map(([k,v])=>(
+          <div key={k} className="card card-sm fade-up" style={{textAlign:'center',borderColor:`${S[k].c}28`,padding:'12px 10px'}}>
+            <div style={{fontSize:22,fontWeight:800,color:S[k].c}}>{v}</div>
+            <div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>{S[k].l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Monthly ranking */}
+      <div className="card fade-up" style={{marginBottom:18,borderColor:'rgba(249,115,22,.22)'}}>
+        <div style={{fontSize:14,fontWeight:700,color:'#f97316',marginBottom:16,display:'flex',alignItems:'center',gap:7}}>
+          🏆 月次優先度ランキング TOP5
+          <span style={{fontSize:11,color:'var(--text3)',fontWeight:400}}>（AIスコア + 賛同票×2）</span>
+        </div>
+        {top5.length===0 ? (
+          <div style={{color:'var(--text3)',textAlign:'center',padding:'24px 0',fontSize:13}}>AI分析済みの意見がありません</div>
+        ) : (
+          <div style={{display:'flex',flexDirection:'column',gap:9}}>
+            {top5.map((p,i)=>(
+              <div key={p.id} style={{display:'flex',gap:12,alignItems:'center',padding:'12px 14px',borderRadius:9,background:'rgba(255,255,255,.03)',border:'1px solid var(--border)',cursor:'pointer',transition:'all .18s'}}
+                onClick={()=>onDetail(p.id)}
+                onMouseEnter={e=>{ e.currentTarget.style.borderColor='rgba(249,115,22,.4)'; e.currentTarget.style.background='rgba(249,115,22,.05)'; }}
+                onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.background='rgba(255,255,255,.03)'; }}>
+                <div style={{fontSize:i<3?18:14,minWidth:26,textAlign:'center',fontWeight:800,color:i<3?undefined:'var(--text3)'}}>{rankMedals[i]}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',gap:5,marginBottom:5,flexWrap:'wrap'}}>
+                    <CatBadge cat={p.category}/>
+                    {p.aiIntent&&<IntentBadge intent={p.aiIntent}/>}
+                    <StatusBadge status={p.status}/>
+                  </div>
+                  <p style={{fontSize:13,color:'#cbd5e1',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.aiSummary||p.content}</p>
+                </div>
+                <div style={{textAlign:'right',flexShrink:0}}>
+                  <div style={{fontSize:19,fontWeight:800,color:'#f97316'}}>{p.aiScore+p.votes*2}</div>
+                  <div style={{fontSize:10,color:'var(--text3)'}}>AI:{p.aiScore} 票:{p.votes*2}</div>
+                </div>
+                {p.status==='pending' && (
+                  <button className="btn btn-cyan btn-sm" onClick={e=>{e.stopPropagation();onAssign(p.id);}}>アサイン</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Assigned posts */}
+      <div className="card fade-up" style={{marginBottom:18,borderColor:'rgba(129,140,248,.2)'}}>
+        <div style={{fontSize:14,fontWeight:700,color:'#818cf8',marginBottom:16,display:'flex',alignItems:'center',gap:7}}>
+          📋 担当案件 ({assigned.length}件)
+        </div>
+        {assigned.length===0 ? (
+          <div style={{color:'var(--text3)',textAlign:'center',padding:'24px 0',fontSize:13}}>現在、担当案件はありません</div>
+        ) : (
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {assigned.map(p=>(
+              <div key={p.id} style={{padding:'12px 14px',borderRadius:9,background:'rgba(255,255,255,.03)',border:'1px solid var(--border)',cursor:'pointer',transition:'all .18s'}}
+                onClick={()=>onDetail(p.id)}
+                onMouseEnter={e=>{ e.currentTarget.style.borderColor='rgba(129,140,248,.4)'; }}
+                onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border)'; }}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',gap:5,marginBottom:6,flexWrap:'wrap'}}>
+                      <CatBadge cat={p.category}/>
+                      <StatusBadge status={p.status}/>
+                    </div>
+                    <p style={{fontSize:13,color:'#cbd5e1',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.aiSummary||p.content}</p>
+                    <div style={{fontSize:11,color:'#374151',marginTop:4}}>💬 {(discs[p.id]||[]).length}件 ・ ▲ {p.votes}票</div>
+                  </div>
+                  {p.aiScore&&<div style={{fontSize:16,fontWeight:700,color:'#f97316',marginLeft:14,flexShrink:0}}>{p.aiScore}pt</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Unassigned */}
+      {unassigned.length > 0 && (
+        <div className="card fade-up" style={{borderColor:'rgba(245,158,11,.2)'}}>
+          <div style={{fontSize:14,fontWeight:700,color:'#f59e0b',marginBottom:16}}>⏳ 未アサインの意見 ({unassigned.length}件)</div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {unassigned.map(p=>(
+              <div key={p.id} style={{padding:'12px 14px',borderRadius:9,background:'rgba(255,255,255,.03)',border:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',gap:5,marginBottom:5}}><CatBadge cat={p.category}/></div>
+                  <p style={{fontSize:13,color:'#cbd5e1',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.content}</p>
+                </div>
+                <button className="btn btn-cyan btn-sm" style={{flexShrink:0}} onClick={()=>onAssign(p.id)}>アサインする</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Settings Modal ───────────────────────────────────────────────────────────
+const SettingsModal = ({apiKey,setApiKey,onClose}) => {
+  const [val,setVal]   = useState(apiKey);
+  const [show,setShow] = useState(false);
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="card fade-up" style={{width:460,maxWidth:'calc(100vw - 32px)',maxHeight:'80vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+        <h3 style={{fontSize:15,fontWeight:700,marginBottom:4}}>⚙ 設定</h3>
+        <p style={{fontSize:12.5,color:'var(--text3)',marginBottom:18}}>Claude APIキーを設定するとAI分析機能が有効になります</p>
+        <label className="label">Anthropic API Key</label>
+        <div style={{position:'relative',marginBottom:8}}>
+          <input className="input" type={show?'text':'password'} value={val} onChange={e=>setVal(e.target.value)} placeholder="sk-ant-api03-..."/>
+          <button style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'var(--text3)',cursor:'pointer',fontSize:12,padding:0}} onClick={()=>setShow(s=>!s)}>{show?'隠す':'表示'}</button>
+        </div>
+        <div style={{background:'rgba(34,211,238,.07)',border:'1px solid rgba(34,211,238,.2)',borderRadius:7,padding:'10px 13px',fontSize:12,color:'#94a3b8',marginBottom:18,lineHeight:1.65}}>
+          ℹ APIキーはブラウザのlocalStorageに保存されます。<br/>
+          APIキーなしでも投稿・閲覧・ディスカッション機能は利用可能ですが、AI分析は無効になります。
+        </div>
+        <div style={{marginBottom:16}}>
+          <label className="label">デモ用サンプルデータをリセット</label>
+          <button className="btn btn-danger btn-sm" onClick={()=>{
+            if(!window.confirm('すべてのデータを初期化しますか？')) return;
+            lsSet(LS.POSTS,INIT_POSTS); lsSet(LS.DISC,INIT_DISC); lsSet(LS.VOTES,[]);
+            window.location.reload();
+          }}>データをリセット</button>
+        </div>
+        <div className="divider"/>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>キャンセル</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>{ setApiKey(val); lsSet(LS.KEY,val); onClose(); }}>保存する</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+const App = () => {
+  const [posts,setPosts]       = useState([]);
+  const [discs,setDiscs]       = useState({});
+  const [user,setUser]         = useState(null);
+  const [view,setView]         = useState('feed');
+  const [detailId,setDetailId] = useState(null);
+  const [retryId,setRetryId]   = useState(null);
+  const [apiKey,setApiKey]     = useState('');
+  const [filters,setFilters]   = useState({status:'all',cat:'all',sort:'newest'});
+  const [toasts,setToasts]     = useState([]);
+  const [sessionVotes,setSessionVotes] = useState(new Set());
+  const [aiLoading,setAiLoading]       = useState(false);
+  const [showSettings,setShowSettings] = useState(false);
+  const [loaded,setLoaded]             = useState(false);
+
+  // Load from localStorage
+  useEffect(()=>{
+    const p = lsGet(LS.POSTS);
+    const d = lsGet(LS.DISC);
+    const v = lsGet(LS.VOTES);
+    const k = lsGet(LS.KEY);
+    setPosts(p||INIT_POSTS);
+    setDiscs(d||INIT_DISC);
+    if(v) setSessionVotes(new Set(v));
+    if(k) setApiKey(k);
+    setLoaded(true);
+  },[]);
+  useEffect(()=>{ if(loaded) lsSet(LS.POSTS,posts); },[posts,loaded]);
+  useEffect(()=>{ if(loaded) lsSet(LS.DISC,discs); },[discs,loaded]);
+  useEffect(()=>{ if(loaded) lsSet(LS.VOTES,[...sessionVotes]); },[sessionVotes,loaded]);
+
+  const toast$ = useCallback((msg,type='ok')=>{
+    const id = uid();
+    setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),4000);
+  },[]);
+
+  const nav = useCallback(v=>{
+    setDetailId(null); setRetryId(null); setView(v);
+  },[]);
+
+  const vote = useCallback(postId=>{
+    if(sessionVotes.has(postId)){ toast$('すでに賛同済みです','warn'); return; }
+    setPosts(ps=>ps.map(p=>p.id===postId?{...p,votes:p.votes+1}:p));
+    setSessionVotes(s=>{ const ns=new Set(s); ns.add(postId); return ns; });
+    toast$('賛同しました！');
+  },[sessionVotes,toast$]);
+
+  const submitPost = useCallback(async({content,cat,anon,name,parentPostId})=>{
+    const newPost = {
+      id:uid(), content, category:cat, anonymous:anon, authorName:anon?null:(name||'社員'),
+      status:'pending', votes:0, createdAt:new Date().toISOString(),
+      aiSummary:null, aiIntent:null, aiScore:null, aiUrgency:null, aiImpact:null, aiFeasibility:null,
+      assignedTo:null, rejectionReason:null, parentPostId:parentPostId||null,
+    };
+    setPosts(ps=>[newPost,...ps]);
+    toast$('意見を投稿しました。AI分析中...');
+    setAiLoading(true);
+    try {
+      const ai = await aiAnalyze(content,apiKey);
+      setPosts(ps=>ps.map(p=>p.id===newPost.id?{...p,aiSummary:ai.summary,aiIntent:ai.intent,aiScore:ai.score,aiUrgency:ai.urgency,aiImpact:ai.impact,aiFeasibility:ai.feasibility}:p));
+      toast$('AI分析が完了しました！');
+    } catch(e) {
+      toast$(apiKey?`AI分析に失敗しました: ${e.message}`:'APIキーが未設定のためAI分析をスキップしました','warn');
+    }
+    setAiLoading(false);
+  },[apiKey,toast$]);
+
+  const updateStatus = useCallback((postId,status,rejectionReason=null)=>{
+    setPosts(ps=>ps.map(p=>p.id===postId?{...p,status,rejectionReason}:p));
+    toast$('ステータスを更新しました');
+  },[toast$]);
+
+  const assignPost = useCallback(postId=>{
+    setPosts(ps=>ps.map(p=>p.id===postId?{...p,status:'assigned',assignedTo:'tomitake'}:p));
+    toast$('アサインしました');
+  },[toast$]);
+
+  const addDisc = useCallback((postId,message,guestName)=>{
+    const msg = {
+      id:uid(), postId,
+      authorName:user?user.name:(guestName||'社員'),
+      isManager:user?.role==='manager',
+      message, createdAt:new Date().toISOString(),
+    };
+    setDiscs(d=>({...d,[postId]:[...(d[postId]||[]),msg]}));
+  },[user]);
+
+  const selectedPost = posts.find(p=>p.id===detailId);
+  const retryPost    = posts.find(p=>p.id===retryId);
+
+  if(!loaded) return (
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--text3)',gap:10}}>
+      <Spinner size={20}/><span style={{fontSize:14}}>読み込み中...</span>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* Toasts */}
+      <div className="toast-wrap">
+        {toasts.map(t=><Toast key={t.id} msg={t.msg} type={t.type}/>)}
+      </div>
+      {/* Settings */}
+      {showSettings && <SettingsModal apiKey={apiKey} setApiKey={setApiKey} onClose={()=>setShowSettings(false)}/>}
+      {/* Header */}
+      <Header user={user} view={view} onNav={nav} onLogout={()=>{ setUser(null); nav('feed'); toast$('ログアウトしました'); }} onSettings={()=>setShowSettings(true)}/>
+      {/* Content */}
+      {detailId && selectedPost ? (
+        <DetailView post={selectedPost} discs={discs[selectedPost.id]||[]} user={user} onBack={()=>setDetailId(null)} onVote={vote} voted={sessionVotes.has(selectedPost.id)} onUpdateStatus={updateStatus} onAddDisc={addDisc} onRetry={id=>{ setRetryId(id); setDetailId(null); }}/>
+      ) : retryId && retryPost ? (
+        <RetryView originalPost={retryPost} onSubmit={async fd=>{ await submitPost(fd); setRetryId(null); nav('feed'); }} onBack={()=>{ setDetailId(retryId); setRetryId(null); }} loading={aiLoading}/>
+      ) : view==='login' ? (
+        <LoginView onLogin={u=>{ setUser(u); nav('feed'); toast$(`ようこそ、${u.name}さん`); }} onBack={()=>nav('feed')}/>
+      ) : view==='compose' ? (
+        <ComposeView onSubmit={async fd=>{ await submitPost(fd); nav('feed'); }} onBack={()=>nav('feed')} loading={aiLoading}/>
+      ) : view==='dashboard' && user?.role==='manager' ? (
+        <DashboardView posts={posts} discs={discs} onDetail={id=>{ setDetailId(id); setView('feed'); }} onAssign={assignPost}/>
+      ) : (
+        <FeedView posts={posts} filters={filters} setFilters={setFilters} onDetail={setDetailId} onVote={vote} sessionVotes={sessionVotes} onCompose={()=>nav('compose')}/>
+      )}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
 </body>
 </html>
